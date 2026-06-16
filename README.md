@@ -65,3 +65,12 @@ mini_gpt2/
 ```
 
 ---
+
+## Related Papers
+
+- Language Models are Unsupervised Multitask Learners (GPT2, OpenAI)
+- Attention Is All You Need (Transformer, Google)
+- Language Models Are Few-Shot Learners (GPT3, OpenAI)
+- Scaling Laws for Neural Language Models (Scaling, OpenAI)
+- Training Compute-Optimal Large Language Models (Optimal Scaling, Google)
+- LLama: Open and Efficient Foundation Language Models (LLama, Meta)

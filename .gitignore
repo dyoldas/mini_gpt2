@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# VS Code / editors
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+runs/
+
+# Model checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Tokenized / processed datasets
+data/raw/
+data/processed/
+*.bin
+*.npy
+*.npz
+*.pkl
+
+# Large downloaded datasets
+datasets/
+hf_cache/
+.cache/
+
+# Experiment artifacts
+wandb/
+tensorboard/
+outputs/
+samples/
+
+# Keep empty folders if needed
+!checkpoints/.gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
