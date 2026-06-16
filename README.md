@@ -66,6 +66,68 @@ mini_gpt2/
 
 ---
 
+## Data Preparation
+
+This project uses staged GPT-2 BPE pretraining data. Raw text is streamed from datasets, tokenized with the GPT-2 tokenizer, and saved as binary token files.
+
+Output format:
+
+```
+data/processed/<stage>/
+├── train.bin
+├── val.bin
+└── stats.json
+```
+
+Each `.bin` file stores GPT-2 token IDs as `uint16`.
+
+### Pretraining stages
+
+| Stage         | Purpose                                               |
+| ------------- | ----------------------------------------------------- |
+| `tinystories` | First easy pretraining stage for simple coherent text |
+| `finewebedu`  | Cleaner educational web-text pretraining              |
+| `webmix`      | 70% FineWeb-Edu + 30% OpenWebText-style data          |
+| `local`       | Debug using a local text file                         |
+
+### Commands
+
+Prepare TinyStories first:
+
+```bash
+python -m data.prepare --stage tinystories --max_tokens 5000000
+```
+
+Prepare FineWeb-Edu later:
+
+```bash
+python -m data.prepare --stage finewebedu --max_tokens 50000000
+```
+
+Prepare mixed web-text stage:
+
+```bash
+python -m data.prepare --stage webmix --max_tokens 50000000
+```
+
+Prepare a local text file:
+
+```bash
+python -m data.prepare --stage local --input_file data/raw/input.txt
+```
+
+### Training progression
+
+The intended pretraining order is:
+
+```
+TinyStories -> FineWeb-Edu -> FineWeb-Edu/OpenWebText mix
+```
+
+This lets the model first learn simple language structure, then move toward broader GPT-2-style web-text pretraining.
+
+---
+
 ## Related Papers
 
 - Language Models are Unsupervised Multitask Learners (GPT2, OpenAI)

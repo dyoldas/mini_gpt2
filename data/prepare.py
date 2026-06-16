@@ -97,7 +97,7 @@ def iter_tinystories() -> Iterator[str]:
     )
 
     for row in dataset:
-        text = row["text"].strip()
+        text = row["text"].strip()  # type: ignore
         if text:
             yield text
 
@@ -121,7 +121,7 @@ def iter_finewebedu() -> Iterator[str]:
     )
 
     for row in dataset:
-        text = row["text"].strip()
+        text = row["text"].strip()  # type: ignore
         if text:
             yield text
 
@@ -141,7 +141,7 @@ def iter_openwebtext() -> Iterator[str]:
     )
 
     for row in dataset:
-        text = row["text"].strip()
+        text = row["text"].strip()  # type: ignore
         if text:
             yield text
 
@@ -521,7 +521,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max_tokens",
         type=int,
-        default=5_000_000,
+        default=10_000_000,
         help="Maximum number of GPT-2 BPE tokens to prepare.",
     )
 
@@ -558,3 +558,5 @@ if __name__ == "__main__":
         input_file=args.input_file,
         keep_all_bin=args.keep_all_bin,
     )
+
+    print("Dataset preparation complete.")
