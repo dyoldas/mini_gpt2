@@ -65,6 +65,9 @@ class MiniGPT2ChatApp:
         )
 
         self._build_ui()
+        self._append_system_message(
+            f"Loaded model from {checkpoint}. Type a prompt and press Generate.\n"
+        )
 
     def _build_ui(self) -> None:
         """
@@ -111,10 +114,6 @@ class MiniGPT2ChatApp:
             side=tk.RIGHT,
             padx=(10, 0),
             fill=tk.Y,
-        )
-
-        self._append_system_message(
-            "Loaded mini_gpt2. Type a prompt and press Generate.\n"
         )
 
     def _append_text(self, text: str) -> None:

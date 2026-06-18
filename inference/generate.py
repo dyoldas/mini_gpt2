@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import json
 
 from models import GPT, GPTConfig
 from tokenizer import GPT2Tokenizer
@@ -63,13 +64,129 @@ def build_model_config(checkpoint: dict[str, Any]) -> GPTConfig:
     raise KeyError("Checkpoint does not contain model config.")
 
 
+def load_hf_gpt2_into_custom_model(
+    model_dir: Path,
+    device: str,
+) -> GPT:
+    """
+    Load HuggingFace GPT-2 weights into our custom GPT model.
+
+    HF GPT-2 uses names like:
+        transformer.wte.weight
+        transformer.h.0.attn.c_attn.weight
+
+    Our model uses names like:
+        token_embedding.weight
+        blocks.0.attn.c_attn.weight
+
+    Also important:
+    HF Conv1D weights are stored transposed compared to nn.Linear,
+    so attention/MLP projection weights need .T.
+    """
+
+    config_path = model_dir / "config.json"
+    weights_path = model_dir / "pytorch_model.pt"
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        hf_config = json.load(f)
+
+    config = GPTConfig(
+        vocab_size=hf_config["vocab_size"],
+        block_size=hf_config["n_positions"],
+        n_layer=hf_config["n_layer"],
+        n_head=hf_config["n_head"],
+        n_embd=hf_config["n_embd"],
+        dropout=0.0,  # inference only
+    )
+
+    model = GPT(config).to(device)
+    hf_sd = torch.load(weights_path, map_location="cpu")
+    sd = model.state_dict()
+
+    # Embeddings
+    sd["token_embedding.weight"].copy_(hf_sd["transformer.wte.weight"])
+    sd["position_embedding.weight"].copy_(hf_sd["transformer.wpe.weight"])
+
+    # Transformer blocks
+    for i in range(config.n_layer):
+        prefix_hf = f"transformer.h.{i}"
+        prefix_ours = f"blocks.{i}"
+
+        # LayerNorms
+        sd[f"{prefix_ours}.ln_1.weight"].copy_(hf_sd[f"{prefix_hf}.ln_1.weight"])
+        sd[f"{prefix_ours}.ln_1.bias"].copy_(hf_sd[f"{prefix_hf}.ln_1.bias"])
+        sd[f"{prefix_ours}.ln_2.weight"].copy_(hf_sd[f"{prefix_hf}.ln_2.weight"])
+        sd[f"{prefix_ours}.ln_2.bias"].copy_(hf_sd[f"{prefix_hf}.ln_2.bias"])
+
+        # Attention projections
+        # HF stores Conv1D weights as (in, out), nn.Linear wants (out, in).
+        sd[f"{prefix_ours}.attn.c_attn.weight"].copy_(
+            hf_sd[f"{prefix_hf}.attn.c_attn.weight"].T
+        )
+        sd[f"{prefix_ours}.attn.c_attn.bias"].copy_(
+            hf_sd[f"{prefix_hf}.attn.c_attn.bias"]
+        )
+
+        sd[f"{prefix_ours}.attn.c_proj.weight"].copy_(
+            hf_sd[f"{prefix_hf}.attn.c_proj.weight"].T
+        )
+        sd[f"{prefix_ours}.attn.c_proj.bias"].copy_(
+            hf_sd[f"{prefix_hf}.attn.c_proj.bias"]
+        )
+
+        # MLP projections
+        sd[f"{prefix_ours}.mlp.c_fc.weight"].copy_(
+            hf_sd[f"{prefix_hf}.mlp.c_fc.weight"].T
+        )
+        sd[f"{prefix_ours}.mlp.c_fc.bias"].copy_(hf_sd[f"{prefix_hf}.mlp.c_fc.bias"])
+
+        sd[f"{prefix_ours}.mlp.c_proj.weight"].copy_(
+            hf_sd[f"{prefix_hf}.mlp.c_proj.weight"].T
+        )
+        sd[f"{prefix_ours}.mlp.c_proj.bias"].copy_(
+            hf_sd[f"{prefix_hf}.mlp.c_proj.bias"]
+        )
+
+    # Final LayerNorm
+    sd["ln_f.weight"].copy_(hf_sd["transformer.ln_f.weight"])
+    sd["ln_f.bias"].copy_(hf_sd["transformer.ln_f.bias"])
+
+    # lm_head is tied to token_embedding in our model.
+    model.load_state_dict(sd)
+    model.eval()
+
+    print(f"Loaded HF GPT-2 weights into custom GPT model: {model_dir}")
+    print(f"Parameters: {model.num_parameters():,}")
+
+    return model
+
+
 def load_model(
     checkpoint_path: Path,
     device: str,
 ) -> GPT:
     """
-    Load GPT model from checkpoint.
+    Load either:
+
+    1. Our custom mini_gpt2 checkpoint:
+        checkpoints/gpt2_50m_tinystories/ckpt_best.pt
+
+    2. Real HuggingFace GPT-2 folder:
+        checkpoints/gpt2
+        checkpoints/gpt2-medium
+        checkpoints/gpt2-large
+        checkpoints/gpt2-xl
+
+    Rule:
+        file path   -> custom checkpoint
+        folder path -> HF GPT-2 weights converted into our GPT class
     """
+
+    if checkpoint_path.is_dir():
+        return load_hf_gpt2_into_custom_model(
+            model_dir=checkpoint_path,
+            device=device,
+        )
 
     checkpoint = torch.load(
         checkpoint_path,
@@ -82,7 +199,7 @@ def load_model(
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 
-    print(f"Loaded checkpoint: {checkpoint_path}")
+    print(f"Loaded custom checkpoint: {checkpoint_path}")
     print(f"Device: {device}")
     print(f"Model parameters: {model.num_parameters():,}")
 
