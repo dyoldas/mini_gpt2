@@ -1,6 +1,11 @@
-tiktoken
-numpy
+torch
 datasets
 tqdm
-torch
 pyyaml
+transformers
+tiktoken
+numpy
+huggingface-hub
+jupyter
+ipykernel
+matplotlib
