@@ -1,0 +1,37 @@
+# Serious overnight TinyStories pretraining run.
+# Approx model size: ~50M parameters.
+# Goal: first real mini GPT-2 training run.
+
+data:
+  stage: "tinystories"
+
+model:
+  vocab_size: 50257
+  block_size: 512
+  n_layer: 8
+  n_head: 8
+  n_embd: 512
+  dropout: 0.1
+
+training:
+  batch_size: 16
+  max_iters: 15000
+
+  learning_rate: 0.0003
+  min_lr: 0.00003
+  warmup_iters: 500
+  weight_decay: 0.1
+  grad_clip: 1.0
+
+  eval_interval: 500
+  eval_iters: 50
+  log_interval: 20
+
+system:
+  seed: 1337
+  device: "auto"
+
+checkpoint:
+  out_dir: "checkpoints/gpt2_50m_tinystories"
+  save_best: true
+  resume_from: null

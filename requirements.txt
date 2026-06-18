@@ -3,3 +3,4 @@ numpy
 datasets
 tqdm
 torch
+pyyaml

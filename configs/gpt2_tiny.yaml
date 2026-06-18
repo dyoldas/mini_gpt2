@@ -1,0 +1,36 @@
+# Tiny first training run for mini_gpt2.
+# Goal: verify that the full pipeline trains before scaling up.
+
+data:
+  stage: "tinystories"
+
+model:
+  vocab_size: 50257
+  block_size: 256
+  n_layer: 4
+  n_head: 4
+  n_embd: 256
+  dropout: 0.1
+
+training:
+  batch_size: 32
+  max_iters: 3000
+
+  learning_rate: 0.0003
+  min_lr: 0.00003
+  warmup_iters: 100
+  weight_decay: 0.1
+  grad_clip: 1.0
+
+  eval_interval: 300
+  eval_iters: 30
+  log_interval: 20
+
+system:
+  seed: 1337
+  device: "auto"
+
+checkpoint:
+  out_dir: "checkpoints/gpt2_tiny_tinystories"
+  save_best: true
+  resume_from: null
