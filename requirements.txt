@@ -6,6 +6,4 @@ transformers
 tiktoken
 numpy
 huggingface-hub
-jupyter
-ipykernel
 matplotlib
