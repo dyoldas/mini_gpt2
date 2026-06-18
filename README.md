@@ -1,8 +1,6 @@
 # mini_gpt2
 
-## Author
-
-Deniz Yoldas
+## Author: Deniz Yoldas
 
 A small-scale recreation of the GPT-2 training pipeline for learning how token-level decoder-only language models are built, pretrained, continued on new datasets, and used for inference.
 
@@ -28,7 +26,7 @@ This project implements:
 
 ## Project Structure
 
-```text
+```
 mini_gpt2/
 ├── README.md
 ├── requirements.txt
@@ -36,6 +34,7 @@ mini_gpt2/
 │
 ├── configs/
 │   ├── gpt2_50m_tinystories.yaml
+│   ├── gpt2_tiny.yaml
 │   └── ...
 │
 ├── data/
